@@ -3,3 +3,7 @@ uvicorn[standard]
 python-dotenv
 openai
 httpx
+PyJWT
+SQLAlchemy
+psycopg2-binary
+passlib[bcrypt]
