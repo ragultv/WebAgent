@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from openai import OpenAI
 from dotenv import load_dotenv
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,28 +41,49 @@ router_client = OpenAI(
     api_key=OPENROUTER_API_KEY
 )
 
+# Dynamic World-Class System Prompt
 
-# System Prompt for Initial Generation
-def get_world_class_system_prompt():
-    return """You are a WORLD-CLASS web designer and full-stack developer who creates PRODUCTION-READY, ENTERPRISE-LEVEL websites that rival the best websites on the internet.
+def get_dynamic_world_class_system_prompt():
+    return """
+You are an INNOVATIVE, WORLD‑CLASS web architect and designer whose sole purpose is to invent **unique, production‑ready** websites on demand. For each user request, you must:
 
-🎯 MISSION: Create stunning, comprehensive websites that are indistinguishable from websites built by top-tier agencies like Stripe, Vercel, Linear, or Figma.
+1. **Deeply Understand the Brief**  
+   – Analyze the user’s goal, audience, and brand personality.  
+   – Identify appropriate visual moods (e.g. corporate, playful, minimalist, futuristic).  
+   – Research imaginary competitor sites to inform your creative direction.
 
-📋 MANDATORY REQUIREMENTS:
-- Generate HTML files with 1000+ lines minimum
-- Include comprehensive sections and features
-- Create pixel-perfect, modern designs
-- Implement advanced animations and interactions
-- Add realistic, industry-specific content
-- Include multiple pages worth of content in single file
-- Use production-level code structure and organization
+2. **Invent a Bespoke Design Language**  
+   – Craft a distinctive color palette that reflects the brand’s tone.  
+   – Choose professional typography pairings (Google Fonts) that reinforce hierarchy.  
+   – Define spacing, grid layouts, and architectural components tailored to the content.
 
-ONLY OUTPUT THE HTML FILE STARTING WITH <!DOCTYPE html> AND ENDING WITH </html>, INCLUDING ALL NECESSARY STYLES AND SCRIPTS. DO NOT INCLUDE ANY EXPLANATION OR ADDITIONAL TEXT.
-"""
+3. **Compose with Tailwind CSS Only**  
+   – Use utility‑first classes for all styling—no inline or external CSS files.  
+   – Leverage responsive variants, custom breakpoints, and JIT features.  
+   – Embed critical CSS in the head for performance.
+
+4. **Embed World‑Class Animations & Interactions**  
+   – Include scroll‑triggered reveals, hover micro‑interactions, and smooth state transitions.  
+   – Utilize CSS transitions, keyframe animations, and lightweight JS for effects.  
+   – Add loading skeletons or Lottie animations where appropriate.
+
+5. **Structure for Excellence**  
+   – Write semantic HTML5 (header, nav, main, section, article, footer) with ARIA roles.  
+   – Organize components modularly (e.g. Hero, Features, Testimonials, CTA, Footer).  
+   – Ensure accessibility (WCAG AA) and SEO best practices (proper meta, alt tags).
+
+6. **Optimize for Performance & Scalability**  
+   – Minimize DOM depth, lazy‑load images and fonts, and use optimized assets.  
+   – Keep bundle size small; reference CDN for common libs if needed.  
+   – Include comments to explain complex sections for future maintainers.
+
+ONLY OUTPUT THE HTML FILE STARTING WITH <!DOCTYPE html> AND ENDING WITH </html>, INCLUDING ALL NECESSARY STYLES AND SCRIPTS. DO NOT INCLUDE ANY EXPLANATION OR ADDITIONAL TEXT."""
 
 # System Prompt for Modifications
+
 def get_modification_system_prompt():
-    return """You are an expert web developer modifying an existing HTML file.
+    return """
+You are an expert web developer modifying an existing HTML file.
 The user wants to apply changes based on their request.
 You MUST output ONLY the changes required using the following SEARCH/REPLACE block format. Do NOT output the entire file.
 Explain the changes briefly *before* the blocks if necessary, but the code changes THEMSELVES MUST be within the blocks.
@@ -135,12 +157,11 @@ async def generate_website(request: Request):
         prompt = body.get("prompt", "").strip()
         previous_html = body.get("previous_html")
         previous_prompt = body.get("previous_prompt")
-        
+
         if not prompt:
             return JSONResponse(status_code=400, content={"error": "Prompt is required"})
 
         if previous_html:
-            # Modification request
             system_prompt = get_modification_system_prompt()
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -149,15 +170,13 @@ async def generate_website(request: Request):
                 {"role": "user", "content": prompt}
             ]
         else:
-            # Initial generation
-            system_prompt = get_world_class_system_prompt()
+            system_prompt = get_dynamic_world_class_system_prompt()
             enhanced_prompt = get_enhanced_user_prompt(prompt)
             messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": enhanced_prompt}
             ]
 
-        # Stream response
         completion = nvidia_client.chat.completions.create(
             model="deepseek-ai/deepseek-r1-0528",
             messages=messages,
@@ -171,12 +190,13 @@ async def generate_website(request: Request):
                 for chunk in completion:
                     if chunk.choices and chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content.encode("utf-8")
+                        await asyncio.sleep(0.01)
             except Exception as e:
                 logger.error(f"Stream error: {str(e)}")
-                yield f"Error: {str(e)}".encode("utf-8")
+                yield f"\n[ERROR]: Stream interrupted - {str(e)}".encode("utf-8")
 
-        return StreamingResponse(stream_generator(), media_type="text/plain")
-        
+        return StreamingResponse(stream_generator(), media_type="text/event-stream")
+
     except Exception as e:
         logger.error(f"Generation error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": str(e)})
