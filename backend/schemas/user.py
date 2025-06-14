@@ -3,14 +3,12 @@ from uuid import UUID
 
 class UserCreate(BaseModel):
     name: str
-    email: str
     password: str
     api_key: str
 
 class UserResponse(BaseModel):
     id: UUID # Allow UUID type
     name: str
-    email: str
 
     @field_validator('id', mode='before')
     @classmethod

@@ -27,8 +27,8 @@ app.add_middleware(
 )
 
 # API Keys
-NVAPI_KEY = os.getenv("NVAPI_KEY", "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")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "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")
+NVAPI_KEY = os.getenv("NVAPI_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # AI Clients
 nvidia_client = OpenAI(
