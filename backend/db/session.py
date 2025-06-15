@@ -5,9 +5,9 @@ from sqlalchemy.exc import OperationalError
 import time
 from contextlib import contextmanager
 
-# ✅ use settings.DATABASE_URL instead of os.getenv (Pinnacle@2004)
-#"postgresql://postgres.zpznfixzppzhyztxhdiy:ragul%402004@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
-engine = create_engine("postgresql://postgres.zpznfixzppzhyztxhdiy:ragul%402004@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres",
+
+
+engine = create_engine("postgresql://postgres:ragul%402004@localhost:5432/webagent",
     poolclass=QueuePool,
     pool_size=5,  # Reduced pool size to be more conservative
     max_overflow=5,  # Reduced overflow to be more conservative

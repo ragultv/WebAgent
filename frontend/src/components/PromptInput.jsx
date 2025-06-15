@@ -6,12 +6,7 @@ const PromptInput = ({
   onGenerate,
   isGenerating,
   error,
-  selectedStyle,
-  setSelectedStyle,
-  selectedSiteType,
-  setSelectedSiteType,
-  designStyles,
-  siteTypes
+
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 

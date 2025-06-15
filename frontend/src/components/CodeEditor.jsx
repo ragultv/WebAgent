@@ -90,10 +90,32 @@ const CodeEditor = ({ value, onChange }) => {
       }
     };
   }, [fontSize]);
-
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.getValue()) {
+      const currentValue = editorRef.current.getValue();
+      const currentPosition = editorRef.current.getPosition();
+      
       editorRef.current.setValue(value);
+      
+      // Auto-scroll to the end if new content is being added (streaming)
+      if (value.length > currentValue.length) {
+        // Move cursor to the end of the document
+        const lineCount = editorRef.current.getModel().getLineCount();
+        const lastLineLength = editorRef.current.getModel().getLineLength(lineCount);
+        
+        const endPosition = {
+          lineNumber: lineCount,
+          column: lastLineLength + 1
+        };
+        
+        editorRef.current.setPosition(endPosition);
+        
+        // Reveal the position to ensure it's visible
+        editorRef.current.revealPosition(endPosition, monaco.editor.ScrollType.Smooth);
+        
+        // Alternative: scroll to the bottom of the editor
+        editorRef.current.revealLine(lineCount, monaco.editor.ScrollType.Smooth);
+      }
     }
   }, [value]);
 
