@@ -7,3 +7,7 @@ class Token(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+class DescriptionRequest(BaseModel):
+    description: str

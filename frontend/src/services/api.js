@@ -99,13 +99,14 @@ export const generateCode = async (options) => {
       'Content-Type': 'application/json',
     };
 
+    // Add Authorization header if token exists
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     const response = await fetch(`${API_URL}/generate`, {
       method: 'POST',
-      headers: headers,
+      headers,
       body: JSON.stringify(body),
     });
 
@@ -120,30 +121,62 @@ export const generateCode = async (options) => {
   }
 };
 
-
-export const getDesignStyles = async () => {
+// Image upload and analysis functions
+export const analyzeImage = async (imageFile) => {
   try {
-    const response = await fetch(`${API_URL}/design-styles`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const token = localStorage.getItem('access_token');
+    const formData = new FormData();
+    formData.append('file', imageFile);
+
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
+
+    const response = await fetch(`${API_URL}/analyze-image`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
     return await response.json();
   } catch (error) {
-    console.error('API Error:', error);
-    return { styles: {}, default: 'v0-modern' };
+    console.error('Image Analysis Error:', error);
+    throw error;
   }
 };
 
-export const getSiteTypes = async () => {
+export const generateCodeFromImage = async (description) => {
   try {
-    const response = await fetch(`${API_URL}/site-types`);
+    const token = localStorage.getItem('access_token');
+    
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/generate-website`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ description }),
+    });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return await response.json();
+
+    return response.body;
   } catch (error) {
-    console.error('API Error:', error);
-    return { types: [], default: 'landing' };
+    console.error('Image Code Generation Error:', error);
+    throw error;
   }
 };
 

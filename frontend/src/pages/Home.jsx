@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import CodeEditor from '../components/CodeEditor';
 import Preview from '../components/Preview';
 import PromptInput from '../components/PromptInput';
-import { generateCode, getDesignStyles, getSiteTypes , refreshToken as apiRefreshToken} from '../services/api';
+import { 
+  generateCode, 
+  analyzeImage, 
+  generateCodeFromImage,
+  refreshToken as apiRefreshToken 
+} from '../services/api';
 import './Home.css';
 
 function HomePage() {
@@ -11,32 +16,14 @@ function HomePage() {
   const [code, setCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedStyle, setSelectedStyle] = useState('v0-modern');
-  const [selectedSiteType, setSelectedSiteType] = useState('landing');
-  const [designStyles, setDesignStyles] = useState({});
-  const [siteTypes, setSiteTypes] = useState([]);
   const [activeTab, setActiveTab] = useState('prompt'); // prompt, code, preview
+  
+  // Image upload states
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [imageAnalysis, setImageAnalysis] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-
-    
-    // Load design styles and site types
-    const loadData = async () => {
-      try {
-        const [stylesRes, typesRes] = await Promise.all([
-          getDesignStyles(),
-          getSiteTypes()
-        ]);
-        setDesignStyles(stylesRes.styles);
-        setSiteTypes(typesRes.types);
-      } catch (err) {
-        console.error('Failed to load data:', err);
-      }
-    };
-    loadData();
-  }, []);
 
   const checkAuth = async () => {
     const token = localStorage.getItem("access_token")
@@ -57,9 +44,40 @@ function HomePage() {
     return true
   }
 
+  const handleImageUpload = async (file) => {
+    if (!file) {
+      // Remove image
+      setUploadedImage(null);
+      setImageAnalysis(null);
+      setError(null);
+      return;
+    }
+
+    setUploadedImage(file);
+    setImageAnalysis(null);
+    setIsAnalyzing(true);
+    setError(null);
+
+    try {
+      const analysis = await analyzeImage(file);
+      setImageAnalysis(analysis);
+    } catch (err) {
+      console.error('Image analysis failed:', err);
+      setError(`Image analysis failed: ${err.message}`);
+      setUploadedImage(null);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      setError('Please enter a prompt');
+    // Check if we have either a prompt or an analyzed image
+    if (!uploadedImage && !prompt.trim()) {
+      setError('Please enter a prompt or upload an image');
+      return;
+    }
+
+    if (uploadedImage && !imageAnalysis) {
+      setError('Please wait for image analysis to complete');
       return;
     }
 
@@ -69,11 +87,15 @@ function HomePage() {
     setActiveTab('code');
 
     try {
-      const stream = await generateCode({
-        prompt,
-        style: selectedStyle,
-        site_type: selectedSiteType
-      });
+      let stream;
+        if (uploadedImage && imageAnalysis) {
+        // Generate from image analysis description using the specific endpoint
+        stream = await generateCodeFromImage(imageAnalysis.description);
+      } else {
+        // Generate from text prompt
+        stream = await generateCode({ prompt });
+      }
+
       const reader = stream.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -126,12 +148,10 @@ function HomePage() {
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             error={error}
-            selectedStyle={selectedStyle}
-            setSelectedStyle={setSelectedStyle}
-            selectedSiteType={selectedSiteType}
-            setSelectedSiteType={setSelectedSiteType}
-            designStyles={designStyles}
-            siteTypes={siteTypes}
+            onImageUpload={handleImageUpload}
+            uploadedImage={uploadedImage}
+            imageAnalysis={imageAnalysis}
+            isAnalyzing={isAnalyzing}
           />
         </aside>
 

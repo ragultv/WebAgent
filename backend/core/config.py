@@ -11,6 +11,7 @@ class Settings:
     PROJECT_NAME: str = "Web Agent"
     ENV: str = os.getenv("ENV", "development")
     NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY")
+    API_KEY:str= os.getenv("api_key")  # Added default value
     DEBUG: bool = ENV == "development"
     DATABASE_URL: str = os.getenv("DATABASE_URL")
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "supersecretkey")
