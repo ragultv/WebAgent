@@ -7,8 +7,6 @@
 🔗 **GitHub**: [https://github.com/ragultv/WebAgent](https://github.com/ragultv/WebAgent)  
 ⭐ If you find this project useful, give it a star to support ongoing improvements!
 
-![Star History](https://api.star-history.com/svg?repos=ragultv/WebAgent&type=Date)
-
 ---
 
 ## 🚀 Features
@@ -27,8 +25,8 @@
 **Backend**: FastAPI, Python, SQLAlchemy, Pillow  
 **Database**: SQLite (dev), PostgreSQL (prod-ready)  
 **AI Models**:  
-- `DeepSeek R1` from NVIDIA for layout parsing and prompt handling  
-- `Qwen 2.5` for HTML/CSS/JS code generation
+- `DeepSeek R1` from NVIDIA code generation 
+- `Qwen 2.5` for design layout handling
 
 ---
 
@@ -78,28 +76,7 @@ npm run dev
 ```
 
 ---
-
-## 🧪 API Endpoints
-
-- `POST /api/users/register`: Register a user  
-- `POST /api/users/login`: Authenticate a user  
-- `POST /api/users/refresh`: Refresh access token  
-- `GET  /api/users/me`: Get current user info  
-- `POST /api/generate`: Generate site from a prompt  
-- `POST /api/analyze-image`: Extract structure from a design  
-- `POST /api/generate-website`: Build website based on analysis
-
----
-
-## 🖥 Usage Guide
-
-1. Start both backend and frontend servers.
-2. Go to `http://localhost:5173`.
-3. Register or log in.
-4. Choose between prompt-based or design-based generation.
-5. View and edit the code in real time with live preview.
-
----
+![Star History](https://api.star-history.com/svg?repos=ragultv/WebAgent&type=Date)
 
 ## ⭐ Support Development
 
