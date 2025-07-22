@@ -161,10 +161,10 @@ async def generate_html_stream(prompt: str, db: Session, current_user: User, pre
     ]
 
     completion = nvidia_client.chat.completions.create(
-        model="deepseek-ai/deepseek-r1-0528",
+        model="moonshotai/kimi-k2-instruct",
         messages=messages,
         temperature=0.2,
-        max_tokens=150000,
+        max_tokens=85000,
         stream=True
     )
 
