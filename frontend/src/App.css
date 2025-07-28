@@ -239,10 +239,79 @@ body {
 .prompt-input-container {
   /* padding: var(--space-6); */
   display: flex;
+  flex-direction: row;
+
+  padding-right: 10px;
+
+  height: 100%;
+  position: relative;
+}
+
+/* Main Content Area */
+.main-content-area {
+  flex: 1;
+  display: flex;
+  margin-left: 10px;
   flex-direction: column;
   gap: var(--space-4);
-  height: 100%;
   justify-content: space-between;
+  
+}
+
+/* Vertical Space Component */
+.vertical-space-component {
+  width: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: var(--space-6);
+}
+
+.icon-buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.icon-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
+}
+
+.icon-action-button:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.icon-action-button.profile-button {
+  background: linear-gradient(135deg, var(--color-accent), #3b82f6);
+  color: white;
+}
+
+.icon-action-button.profile-button:hover {
+  background: linear-gradient(135deg, var(--color-accent-hover), #2563eb);
+}
+
+.icon-action-button.sidebar-button {
+  background-color: var(--color-background);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.icon-action-button.sidebar-button:hover {
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-secondary);
 }
 
 .prompt-header h2 {
@@ -380,7 +449,7 @@ body {
 
 /* Prompt Input Area */
 .prompt-input-area {
-  flex: 1;
+  margin-top: auto;
   margin-bottom: var(--space-4);
 }
 
@@ -1231,6 +1300,25 @@ body {
   
   .prompt-input-container {
     padding: var(--space-4);
+    flex-direction: column;
+  }
+
+  .vertical-space-component {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    padding-bottom: var(--space-4);
+    padding-top: var(--space-4);
+  }
+
+  .icon-buttons-container {
+    flex-direction: row;
+    gap: var(--space-4);
+  }
+
+  .icon-action-button {
+    width: 2.5rem;
+    height: 2.5rem;
   }
   
   .header-content {

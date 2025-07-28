@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, X, Sparkles, Image, Send, AlertCircle, Loader, ArrowLeft, RotateCcw } from 'lucide-react';
+import { Upload, X, Sparkles, Image, Send, AlertCircle, Loader, ArrowLeft, RotateCcw, User, Menu } from 'lucide-react';
 
 const examples = [ 
   "E-commerce store for fashion products",
@@ -107,7 +107,21 @@ const PromptInput = ({
 
   return (
     <div className="prompt-input-container">
-      {responsePhase === 'input' ? (
+      {/* Vertical Space Component for Icons */}
+      {/* <div className="vertical-space-component">
+        <div className="icon-buttons-container">
+          <button className="icon-action-button profile-button" title="Profile">
+            <User className="w-5 h-5" />
+          </button>
+          <button className="icon-action-button sidebar-button" title="Sidebar">
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+      </div> */}
+
+      {/* Main Content Area */}
+      <div className="main-content-area">
+        {responsePhase === 'input' ? (
         <>
           {/* Header */}
           <div className="prompt-header">
@@ -389,6 +403,7 @@ const PromptInput = ({
           )}
         </>
       )}
+      </div>
     </div>
   );
 };
