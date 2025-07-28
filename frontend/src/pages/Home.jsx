@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CodeEditor from '../components/CodeEditor';
 import Preview from '../components/Preview';
@@ -23,7 +23,62 @@ function HomePage() {
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Response phases states
+  const [responsePhase, setResponsePhase] = useState('input'); // 'input', 'explanation', 'generating', 'summary'
+  const [explanationText, setExplanationText] = useState('');
+  const [summaryText, setSummaryText] = useState('');
+  const [userRequest, setUserRequest] = useState('');
+
+  // Resize functionality
+  const [sidebarWidth, setSidebarWidth] = useState(380);
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef(null);
+  const resizeHandleRef = useRef(null);
+
   const navigate = useNavigate();
+
+  // Resize handlers
+  const handleMouseDown = useCallback((e) => {
+    setIsResizing(true);
+    e.preventDefault();
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isResizing) return;
+    
+    const newWidth = e.clientX;
+    const minWidth = 280;
+    const maxWidth = window.innerWidth * 0.6; // Max 60% of window width
+    
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+      setSidebarWidth(newWidth);
+    }
+  }, [isResizing]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, handleMouseMove, handleMouseUp]);
 
   const checkAuth = async () => {
     const token = localStorage.getItem("access_token")
@@ -81,14 +136,19 @@ function HomePage() {
       return;
     }
 
+    // Store the user request
+    setUserRequest(uploadedImage ? `Generate website from uploaded image: ${uploadedImage.name}` : prompt);
+
     setIsGenerating(true);
     setError(null);
     setCode('');
-    setActiveTab('code');
+    setExplanationText('');
+    setSummaryText('');
+    setResponsePhase('explanation');
 
     try {
       let stream;
-        if (uploadedImage && imageAnalysis) {
+      if (uploadedImage && imageAnalysis) {
         // Generate from image analysis description using the specific endpoint
         stream = await generateCodeFromImage(imageAnalysis.description);
       } else {
@@ -99,19 +159,88 @@ function HomePage() {
       const reader = stream.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let currentPhase = 'analysis';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        
         buffer += decoder.decode(value, { stream: true });
-        setCode(buffer);
+        
+        // Parse the three-part response
+        if (buffer.includes('===ANALYSIS_START===') && currentPhase === 'analysis') {
+          setResponsePhase('explanation');
+        }
+        
+        if (buffer.includes('===CODE_START===') && currentPhase !== 'code') {
+          currentPhase = 'code';
+          setResponsePhase('generating');
+          setActiveTab('code');
+          
+          // Extract and display analysis content
+          const analysisMatch = buffer.match(/===ANALYSIS_START===(.*?)===ANALYSIS_END===/s);
+          if (analysisMatch) {
+            setExplanationText(analysisMatch[1].trim());
+          }
+        }
+        
+        if (buffer.includes('===SUMMARY_START===') && currentPhase !== 'summary') {
+          currentPhase = 'summary';
+          setResponsePhase('summary');
+          
+          // Extract and display code content
+          const codeMatch = buffer.match(/===CODE_START===(.*?)===CODE_END===/s);
+          if (codeMatch) {
+            setCode(codeMatch[1].trim());
+          }
+        }
+        
+        // Real-time updates for current phase
+        if (currentPhase === 'analysis') {
+          const analysisPartial = buffer.match(/===ANALYSIS_START===(.*?)(?===ANALYSIS_END===|$)/s);
+          if (analysisPartial) {
+            setExplanationText(analysisPartial[1].trim());
+          }
+        } else if (currentPhase === 'code') {
+          const codePartial = buffer.match(/===CODE_START===(.*?)(?===CODE_END===|$)/s);
+          if (codePartial) {
+            setCode(codePartial[1].trim());
+          }
+        } else if (currentPhase === 'summary') {
+          const summaryPartial = buffer.match(/===SUMMARY_START===(.*?)(?===SUMMARY_END===|$)/s);
+          if (summaryPartial) {
+            setSummaryText(summaryPartial[1].trim());
+          }
+        }
       }
+      
+      // Final parsing to ensure all content is captured
+      const finalAnalysisMatch = buffer.match(/===ANALYSIS_START===(.*?)===ANALYSIS_END===/s);
+      const finalCodeMatch = buffer.match(/===CODE_START===(.*?)===CODE_END===/s);
+      const finalSummaryMatch = buffer.match(/===SUMMARY_START===(.*?)===SUMMARY_END===/s);
+      
+      if (finalAnalysisMatch) setExplanationText(finalAnalysisMatch[1].trim());
+      if (finalCodeMatch) setCode(finalCodeMatch[1].trim());
+      if (finalSummaryMatch) setSummaryText(finalSummaryMatch[1].trim());
+      
     } catch (err) {
       setError(err.message || 'Failed to generate code');
       setCode('<!-- Error occurred while generating code -->');
+      setResponsePhase('input');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const resetToInput = () => {
+    setResponsePhase('input');
+    setExplanationText('');
+    setSummaryText('');
+    setUserRequest('');
+    setError(null);
+    setPrompt('');
+    setUploadedImage(null);
+    setImageAnalysis(null);
   };
 
   return (
@@ -141,7 +270,11 @@ function HomePage() {
       {/* Main Content */}
       <div className="main-layout">
         {/* Sidebar */}
-        <aside className="sidebar">
+        <aside 
+          ref={sidebarRef}
+          className="sidebar"
+          style={{ width: `${sidebarWidth}px` }}
+        >
           <PromptInput
             prompt={prompt}
             setPrompt={setPrompt}
@@ -152,8 +285,21 @@ function HomePage() {
             uploadedImage={uploadedImage}
             imageAnalysis={imageAnalysis}
             isAnalyzing={isAnalyzing}
+            responsePhase={responsePhase}
+            explanationText={explanationText}
+            summaryText={summaryText}
+            userRequest={userRequest}
+            onReset={resetToInput}
+            code={code}
           />
         </aside>
+
+        {/* Resize Handle */}
+        <div 
+          ref={resizeHandleRef}
+          className="resize-handle"
+          onMouseDown={handleMouseDown}
+        />
 
         {/* Editor and Preview */}
         <main className="editor-section">

@@ -99,56 +99,60 @@ def generate_html_code(description: str, current_user: User) -> str:
         return "Error: Invalid or missing description"
 
 
-    prompt = f"""
-    Generate a complete, responsive webpage based on this description and return only the html code starting with <!DOCTYPE html> and ending with </html> without any explanations:
 
-    {description}
+    # Inline system prompt and enhanced prompt
+    system_prompt = """
+You are an expert web developer. You will respond in EXACTLY three parts separated by specific markers:
 
-    Requirements:
-    - Use modern HTML5, CSS3, and vanilla JavaScript only
-    - Include TailwindCSS via CDN for styling
-    - Make it responsive and visually appealing
-    - Use placeholder images from https://unsplash.com/ if needed
-    - Include proper semantic HTML structure
-    - Add interactive elements where appropriate
-    - Ensure the design matches the described layout and style
+PART 1 - ANALYSIS (between ===ANALYSIS_START=== and ===ANALYSIS_END===):
+Provide a brief analysis of what the user needs, understanding their requirements, and what type of website would best serve their needs.
 
-    Return only the complete HTML code starting with <!DOCTYPE html> and ending with </html>.
-    """
+PART 2 - CODE (between ===CODE_START=== and ===CODE_END===):
+Generate ONLY HTML, CSS AND JAVASCRIPT. If you want to use ICON make sure to import the library first. If You want to use image use www.unsplash.com. to get images(use related images). Try to create the best UI possible by using only HTML, CSS and JAVASCRIPT. Also, try to elaborate as much as you can, to create something unique. If needed you are allowed to use tailwindcss (if so make sure to import <script src=\"https://cdn.tailwindcss.com\"></script> in the head). 
+OUTPUT ONLY THE COMPLETE HTML CODE STARTING WITH <!DOCTYPE html> AND ENDING WITH </html>. NO ADDITIONAL TEXT.
 
-    
-    # Configure Nebius OpenAI client (Note: This is configured to use NVIDIA API, not Nebius)
+PART 3 - SUMMARY (between ===SUMMARY_START=== and ===SUMMARY_END===):
+Explain what you have created, key features implemented, design choices made, and how it meets the user's requirements.
+
+**STRICT FORMAT REQUIREMENT:**
+===ANALYSIS_START===
+[Your analysis here]
+===ANALYSIS_END===
+
+===CODE_START===
+[Complete HTML code here]
+===CODE_END===
+
+===SUMMARY_START===
+[Your summary here]
+===SUMMARY_END===
+"""
+
+    enhanced_prompt = f"""
+CREATE A WORLD-CLASS WEBSITE FOR: {description}
+
+Generate a complete, production-ready website that exceeds modern web standards and delivers exceptional user experience. The website should be indistinguishable from those created by professional development teams.
+
+Remember to follow the three-part response format with proper markers for analysis, code, and summary.
+"""
+
     nvidia_client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=current_user.api_key
-  )
-    
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=current_user.api_key
+    )
 
-    # Use DeepSeek-V3-0324 model for code generation
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": enhanced_prompt}
+    ]
+
     response = nvidia_client.chat.completions.create(
-    model="deepseek-ai/deepseek-r1-0528",
-    messages=[
-        {
-            "role": "system",
-            "content": (
-                "You are a professional front-end web developer. "
-                "Always respond with valid HTML code only. "
-                "Return a complete HTML5 webpage starting strictly with <!DOCTYPE html> "
-                "and ending with </html>. Do not include any explanations, extra text, or Markdown. "
-                "Do not wrap the code in code blocks. Output only raw HTML."
-                "when generating the HTML, ensure it is well-structured, and no explanations are provided."
-            )
-        },
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ],
-    temperature=0.2,
-    max_tokens=150000,
-    stream=True
-)
-
+        model="moonshotai/kimi-k2-instruct",
+        messages=messages,
+        temperature=0.2,
+        max_tokens=85000,
+        stream=True
+    )
 
     async def stream_generator():
         try:

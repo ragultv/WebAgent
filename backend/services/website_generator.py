@@ -15,130 +15,39 @@ logger = logging.getLogger(__name__)
 
 def get_unified_system_prompt():
     return """
-You are an expert web developer and UX designer specializing in creating modern, production-ready websites. Your goal is to generate stunning, professional websites that rival those created by top platforms like Vercel v0, Lovable, and Bolt.
+You are an expert web developer. You will respond in EXACTLY three parts separated by specific markers:
 
-**CRITICAL OUTPUT RULE: ONLY OUTPUT THE HTML CODE. NO EXPLANATIONS, NO PROSE, NO MARKDOWN. START WITH <!DOCTYPE html> AND END WITH </html>.**
+PART 1 - ANALYSIS (between ===ANALYSIS_START=== and ===ANALYSIS_END===):
+Provide a brief analysis of what the user needs, understanding their requirements, and what type of website would best serve their needs.
 
-## DESIGN PHILOSOPHY
-Create websites that are:
-- Visually stunning with modern aesthetics
-- Highly functional with smooth interactions
-- Mobile-first and responsive
-- Accessible and fast-loading
-- Production-ready from day one
+PART 2 - CODE (between ===CODE_START=== and ===CODE_END===):
+Generate ONLY HTML, CSS AND JAVASCRIPT. If you want to use ICON make sure to import the library first. If You want to use image use www.unsplash.com. to get images(use related images). Try to create the best UI possible by using only HTML, CSS and JAVASCRIPT. Also, try to elaborate as much as you can, to create something unique. If needed you are allowed to use tailwindcss (if so make sure to import <script src="https://cdn.tailwindcss.com"></script> in the head). 
+OUTPUT ONLY THE COMPLETE HTML CODE STARTING WITH <!DOCTYPE html> AND ENDING WITH </html>. NO ADDITIONAL TEXT.
 
-## TECHNICAL STANDARDS
-1. **Structure**: Use semantic HTML5 with proper hierarchy
-2. **Styling**: TailwindCSS via CDN for all styling
-3. **Interactivity**: Vanilla JavaScript for dynamic features
-4. **Performance**: Optimized images from Unsplash (1200x800 for heroes, 400x300 for cards)
-5. **Responsiveness**: Mobile-first approach with breakpoint considerations
+PART 3 - SUMMARY (between ===SUMMARY_START=== and ===SUMMARY_END===):
+Explain what you have created, key features implemented, design choices made, and how it meets the user's requirements.
 
-## CONTENT CREATION RULES
-- Generate realistic, industry-appropriate content
-- Create authentic testimonials with real-sounding names
-- Use compelling, conversion-focused copy
-- Include relevant statistics and social proof
-- Write professional yet engaging headlines
+**STRICT FORMAT REQUIREMENT:**
+===ANALYSIS_START===
+[Your analysis here]
+===ANALYSIS_END===
 
-## VISUAL DESIGN PRINCIPLES
-- Use sophisticated color palettes (primary, secondary, accent)
-- Implement proper typography hierarchy
-- Apply consistent spacing using Tailwind's spacing scale
-- Add subtle animations and micro-interactions
-- Create visual depth with shadows and gradients
+===CODE_START===
+[Complete HTML code here]
+===CODE_END===
 
-## MANDATORY SECTIONS (adapt based on request):
-1. **Hero**: Compelling headline, subtext, CTA, hero image/video
-2. **Features/Services**: Clear value propositions with icons
-3. **Social Proof**: Testimonials, logos, stats, reviews
-4. **About**: Company story, team, mission
-5. **Pricing**: Clear plans with comparison (if applicable)
-6. **FAQ**: Address common objections and questions
-7. **Contact**: Multiple contact methods, form, location
-8. **Footer**: Comprehensive links, social media, legal
-
-## INTERACTION PATTERNS
-- Smooth scrolling navigation
-- Hover effects on interactive elements
-- Loading states for forms
-- Modal dialogs for additional content
-- Animated counters for statistics
-- Image carousels/galleries
-- Accordion FAQ sections
-- Sticky headers on scroll
-
-## ACCESSIBILITY REQUIREMENTS
-- Proper ARIA labels and roles
-- Keyboard navigation support
-- Alt text for all images
-- Sufficient color contrast
-- Screen reader friendly structure
-
-**STRICT INSTRUCTION: OUTPUT ONLY THE COMPLETE HTML CODE STARTING WITH <!DOCTYPE html> AND ENDING WITH </html>. NO ADDITIONAL TEXT.**
+===SUMMARY_START===
+[Your summary here]
+===SUMMARY_END===
 """
 
 def get_enhanced_user_prompt(original_prompt):
     return f"""
 CREATE A WORLD-CLASS WEBSITE FOR: {original_prompt}
 
-🎯 BUSINESS ANALYSIS & STRATEGY:
-- Identify target audience and their pain points
-- Define primary conversion goals and user journey
-- Research industry best practices and design trends
-- Create compelling brand positioning and messaging
-
-📐 WEBSITE ARCHITECTURE:
-- Design intuitive information architecture
-- Create logical user flow and navigation
-- Implement strategic content hierarchy
-- Optimize for search engines and conversions
-
-🎨 VISUAL DESIGN EXCELLENCE:
-- Choose a sophisticated, cohesive color scheme
-- Implement modern typography with Google Fonts
-- Create visual rhythm with consistent spacing
-- Add tasteful animations and micro-interactions
-- Use high-quality, relevant imagery from Unsplash
-
-🔧 TECHNICAL IMPLEMENTATION:
-- Build with semantic HTML5 structure
-- Style exclusively with TailwindCSS
-- Add vanilla JavaScript for interactions
-- Ensure cross-browser compatibility
-- Optimize for Core Web Vitals
-
-📱 RESPONSIVE DESIGN:
-- Mobile-first approach with progressive enhancement
-- Fluid layouts that work on all screen sizes
-- Touch-friendly interactive elements
-- Optimized images for different viewports
-
-💼 CONTENT STRATEGY:
-- Write compelling, benefit-focused headlines
-- Create authentic testimonials with believable details
-- Include relevant industry statistics and data
-- Craft clear, action-oriented CTAs
-- Develop comprehensive FAQ addressing user concerns
-
-🚀 CONVERSION OPTIMIZATION:
-- Strategic placement of CTAs throughout the page
-- Social proof elements to build trust
-- Clear value propositions and benefits
-- Frictionless contact and signup processes
-- Trust signals and security indicators
-
-🎪 INTERACTIVE ELEMENTS:
-- Smooth scroll navigation with active states
-- Animated counters for impressive statistics
-- Image galleries with lightbox functionality
-- Interactive forms with real-time validation
-- Collapsible FAQ sections
-- Hover effects and button animations
-
 Generate a complete, production-ready website that exceeds modern web standards and delivers exceptional user experience. The website should be indistinguishable from those created by professional development teams.
 
-**DELIVER: Complete HTML file ready for immediate deployment. Only output the HTML code without any explanations.**
+Remember to follow the three-part response format with proper markers for analysis, code, and summary.
 """
 
 
