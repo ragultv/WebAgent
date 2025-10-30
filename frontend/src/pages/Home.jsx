@@ -16,15 +16,14 @@ function HomePage() {
   const [code, setCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('prompt'); // prompt, code, preview
-  
+  const [activeTab, setActiveTab] = useState('prompt'); 
   // Image upload states
   const [uploadedImage, setUploadedImage] = useState(null);
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Response phases states
-  const [responsePhase, setResponsePhase] = useState('input'); // 'input', 'explanation', 'generating', 'summary'
+  const [responsePhase, setResponsePhase] = useState('input'); 
   const [explanationText, setExplanationText] = useState('');
   const [summaryText, setSummaryText] = useState('');
   const [userRequest, setUserRequest] = useState('');

@@ -124,7 +124,7 @@ const PromptInput = ({
         {responsePhase === 'input' ? (
         <>
           {/* Header */}
-          <div className="prompt-header">
+          <div className="prompt-header mt-3">
             <p>Describe your vision or upload a design to recreate</p>
           </div>
 
@@ -289,7 +289,7 @@ const PromptInput = ({
                         <div className="success-card-header">
                         </div>
                         <div className="website-preview-card">
-                          <div className="website-name">{userRequest}</div>
+                          <div className="website-name">Generated Website</div>
                           <div className="website-code">Code</div>
                           
                           {/* Hover Code Tab */}
