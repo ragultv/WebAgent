@@ -82,7 +82,7 @@ async def generate_html_stream(prompt: str, db: Session, current_user: User, pre
             for chunk in completion:
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content.encode("utf-8")
-                    await asyncio.sleep(0.01)
+                    # await asyncio.sleep(0.01)
         except Exception as e:
             logger.error(f"Stream error: {str(e)}")
             yield f"\n[ERROR]: Stream interrupted - {str(e)}".encode("utf-8")
