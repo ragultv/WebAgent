@@ -8,3 +8,4 @@ SQLAlchemy
 psycopg2-binary
 passlib[bcrypt]
 pillow
+python-multipart

@@ -13,7 +13,7 @@ import jwt  # Using PyJWT for JWT operations
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
 # Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 # JWT secret and algorithm
 SECRET_KEY = settings.SECRET_KEY
