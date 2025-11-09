@@ -60,7 +60,7 @@ def analyze_image(image_path: str) -> str:
 
         # Use Qwen2.5-VL-72B-Instruct model for image analysis
         response = client.chat.completions.create(
-            model="Qwen/Qwen2.5-VL-72B-Instruct",
+            model="qwen/qwen2.5-vl-32b-instruct:free",
             messages=[
                 {
                     "role": "user",
