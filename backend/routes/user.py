@@ -27,7 +27,7 @@ async def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
 
     new_user = User(
-        id=uuid.uuid4(),
+        id=str(uuid.uuid4()),
         name=user_in.name,
         password_hash=get_password_hash(user_in.password),
         api_key=user_in.api_key,

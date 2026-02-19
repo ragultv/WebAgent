@@ -13,7 +13,7 @@ import jwt  # Using PyJWT for JWT operations
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
 # Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
 
 # JWT secret and algorithm
 SECRET_KEY = settings.SECRET_KEY
@@ -90,3 +90,25 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
             detail="User not found",
         )
     return user
+
+
+# ── Optional auth — returns User or None, never raises 401 ─────────
+# Used by project file-management routes that don't need the AI API key.
+
+oauth2_optional = OAuth2PasswordBearer(tokenUrl="/api/users/login", auto_error=False)
+
+def get_optional_user(
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(oauth2_optional),
+) -> Optional[object]:
+    """Return the current User if a valid JWT is supplied, else None."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id:
+            return crud_user.get_user(db, user_id=user_id)
+    except Exception:
+        pass
+    return None
