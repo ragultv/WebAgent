@@ -16,7 +16,7 @@ def create_user(db: Session, user: UserCreate):
     from backend.core.security import get_password_hash
 
     db_user = User(
-        id=uuid.uuid4(),
+        id=str(uuid.uuid4()),
         name=user.name,
         password_hash=get_password_hash(user.password),
         api_key=user.api_key,    

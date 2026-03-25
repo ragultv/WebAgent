@@ -154,7 +154,7 @@ export const analyzeImage = async (imageFile) => {
 export const generateCodeFromImage = async (description) => {
   try {
     const token = localStorage.getItem('access_token');
-    
+
     const headers = {
       'Content-Type': 'application/json',
     };
@@ -241,3 +241,149 @@ export const updateApiKey = async ({ new_api_key, current_password }) => {
     return { success: false, error: error.message };
   }
 };
+
+// ─── Project Management (React Local Dev) ─────────────────────────
+
+const projectHeaders = () => {
+  const token = localStorage.getItem('access_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+};
+
+/** Scaffold + npm install a Vite React project (runs in parallel with AI) */
+export const setupProject = async (prompt) => {
+  const response = await fetch(`${API_URL}/project/setup`, {
+    method: 'POST',
+    headers: projectHeaders(),
+    body: JSON.stringify({ prompt }),
+  });
+  return response.json();
+};
+
+/** Write AI files + start dev server with streaming progress (SSE) */
+export const deployProject = async (projectName, files, port = 5174, onEvent) => {
+  const response = await fetch(`${API_URL}/project/deploy`, {
+    method: 'POST',
+    headers: projectHeaders(),
+    body: JSON.stringify({ project_name: projectName, files, port }),
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let result = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const text = decoder.decode(value, { stream: true });
+    const lines = text.split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const event = JSON.parse(line.slice(6));
+          if (onEvent) onEvent(event);
+          if (event.type === 'done' || event.type === 'error') result = event;
+        } catch { /* partial chunk */ }
+      }
+    }
+  }
+
+  return result || { type: 'error', message: 'No response received' };
+};
+
+/** Stop the currently running dev server */
+export const stopDevServer = async () => {
+  const response = await fetch(`${API_URL}/project/stop`, {
+    method: 'POST',
+    headers: projectHeaders(),
+  });
+  return response.json();
+};
+
+/** Get the file tree of a project */
+export const getProjectFiles = async (projectName) => {
+  const response = await fetch(`${API_URL}/project/files/${encodeURIComponent(projectName)}`, {
+    headers: projectHeaders(),
+  });
+  return response.json();
+};
+
+/** Read a single file from a project */
+export const readProjectFile = async (projectName, filePath) => {
+  const response = await fetch(
+    `${API_URL}/project/file/${encodeURIComponent(projectName)}?path=${encodeURIComponent(filePath)}`,
+    { headers: projectHeaders() }
+  );
+  return response.json();
+};
+
+/** Write/update a single file in a project */
+export const writeProjectFile = async (projectName, filePath, content) => {
+  const response = await fetch(`${API_URL}/project/file/${encodeURIComponent(projectName)}`, {
+    method: 'POST',
+    headers: projectHeaders(),
+    body: JSON.stringify({ path: filePath, content }),
+  });
+  return response.json();
+};
+
+/**
+ * streamGenerate — the single-stream workhorse.
+ *
+ * Calls POST /api/project/stream-generate which:
+ *   1. Streams from AI
+ *   2. Parses FILE_START/FILE_END blocks as they arrive
+ *   3. Writes each file to disk immediately on the backend
+ *   4. Yields events back: analysis_partial | analysis | file | status | summary | done | error
+ *
+ * Usage:
+ *   for await (const event of streamGenerate(projectName, prompt, srcFiles)) {
+ *     if (event.type === 'file')    updateIDE(event.path, event.content);
+ *     if (event.type === 'done')    setPort(event.port);
+ *     if (event.type === 'error')   showError(event.message);
+ *   }
+ */
+export async function* streamGenerate(projectName, prompt, srcFiles = [], port = 5174) {
+  const token = localStorage.getItem('access_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const response = await fetch(`${API_URL}/project/stream-generate`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ project_name: projectName, prompt, src_files: srcFiles, port }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    yield { type: 'error', message: err.error || `HTTP ${response.status}` };
+    return;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // SSE lines are separated by double-newline
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop();           // keep incomplete last chunk
+
+    for (const part of parts) {
+      const line = part.trim();
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const event = JSON.parse(line.slice(6));
+        yield event;
+        if (event.type === 'done' || event.type === 'error') return;
+      } catch { /* partial / malformed chunk — ignore */ }
+    }
+  }
+}

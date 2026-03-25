@@ -13,7 +13,7 @@ class Settings:
     NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY")
     API_KEY:str= os.getenv("api_key")  # Added default value
     DEBUG: bool = ENV == "development"
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "supersecretkey")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "anotherdefaultsecretkey")  # Added default value
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "120"))

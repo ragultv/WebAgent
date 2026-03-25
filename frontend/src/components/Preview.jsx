@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { RefreshCw, ExternalLink, Monitor, Smartphone, Tablet, ZoomIn, ZoomOut, Loader } from 'lucide-react';
 
 const Preview = ({ code }) => {
   const iframeRef = useRef(null);
@@ -88,141 +89,109 @@ const Preview = ({ code }) => {
   const dimensions = getViewportDimensions();
 
   return (
-    <div className="preview-container">
+    <div className="flex flex-col h-full bg-google-surface">
       {/* Preview Toolbar */}
-      <div className="preview-toolbar">
-        <div className="preview-controls">
-          <div className="viewport-controls">
+      <div className="flex items-center justify-between px-4 py-2 bg-google-surface border-b border-google-border shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-google-dark rounded-md border border-google-border p-0.5">
             <button
-              className={`viewport-btn ${viewMode === 'desktop' ? 'active' : ''}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'desktop' ? 'bg-google-surface text-google-text shadow-sm' : 'text-google-text-secondary hover:text-google-text'}`}
               onClick={() => setViewMode('desktop')}
               title="Desktop view"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="2" y="4" width="20" height="12" rx="2"/>
-                <path d="M2 8h20"/>
-              </svg>
+              <Monitor className="w-4 h-4" />
             </button>
             <button
-              className={`viewport-btn ${viewMode === 'tablet' ? 'active' : ''}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'tablet' ? 'bg-google-surface text-google-text shadow-sm' : 'text-google-text-secondary hover:text-google-text'}`}
               onClick={() => setViewMode('tablet')}
               title="Tablet view"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="6" y="2" width="12" height="20" rx="2"/>
-              </svg>
+              <Tablet className="w-4 h-4" />
             </button>
             <button
-              className={`viewport-btn ${viewMode === 'mobile' ? 'active' : ''}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'mobile' ? 'bg-google-surface text-google-text shadow-sm' : 'text-google-text-secondary hover:text-google-text'}`}
               onClick={() => setViewMode('mobile')}
               title="Mobile view"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="8" y="1" width="8" height="22" rx="2"/>
-              </svg>
+              <Smartphone className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="scale-controls">
+          <div className="flex items-center gap-2">
             <button
-              className="scale-btn"
+              className="p-1.5 text-google-text-secondary hover:text-google-text rounded transition-colors"
               onClick={() => setScale(Math.max(25, scale - 25))}
               disabled={scale <= 25}
               title="Zoom out"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-                <path d="M8 11h6"/>
-              </svg>
+              <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="scale-indicator">{scale}%</span>
+            <span className="text-xs text-google-text w-8 text-center">{scale}%</span>
             <button
-              className="scale-btn"
+              className="p-1.5 text-google-text-secondary hover:text-google-text rounded transition-colors"
               onClick={() => setScale(Math.min(200, scale + 25))}
               disabled={scale >= 200}
               title="Zoom in"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-                <path d="M11 8v6M8 11h6"/>
-              </svg>
+              <ZoomIn className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="preview-actions">
+        <div className="flex items-center gap-2">
           <button
-            className="action-btn"
+            className="p-1.5 text-google-text-secondary hover:text-google-text hover:bg-google-surface-hover rounded transition-colors"
             onClick={refreshPreview}
             title="Refresh preview"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
+            <RefreshCw className="w-4 h-4" />
           </button>
           <button
-            className="action-btn"
+            className="p-1.5 text-google-text-secondary hover:text-google-text hover:bg-google-surface-hover rounded transition-colors"
             onClick={openInNewTab}
             title="Open in new tab"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
+            <ExternalLink className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* Preview Content */}
-      <div className="preview-content">
+      <div className="flex-1 relative bg-[#f1f3f4] overflow-hidden flex items-center justify-center">
         {isLoading && (
-          <div className="preview-loading">
-            <div className="loading-spinner">
-              <svg className="animate-spin w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-            </div>
-            <p>Loading preview...</p>
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+            <Loader className="w-8 h-8 text-google-primary animate-spin mb-2" />
+            <p className="text-sm text-google-text-secondary">Loading preview...</p>
           </div>
         )}
-        
-        <div 
-          className={`preview-frame ${viewMode}`}
-          style={{ 
+
+        <div
+          className="transition-all duration-300 ease-in-out bg-white shadow-lg overflow-hidden relative"
+          style={{
             width: dimensions.width,
             height: dimensions.height,
             transform: `scale(${scale / 100})`,
-            transformOrigin: viewMode === 'desktop' ? 'top left' : 'center center',
-            border: viewMode !== 'desktop' ? '1px solid var(--color-border)' : 'none',
-            borderRadius: viewMode !== 'desktop' ? 'var(--radius-lg)' : '0',
-            boxShadow: viewMode !== 'desktop' ? 'var(--shadow-lg)' : 'none',
-            transition: 'width 0.3s ease, height 0.3s ease, transform 0.3s ease',
+            transformOrigin: 'center center',
+            border: viewMode !== 'desktop' ? '1px solid #e5e7eb' : 'none',
+            borderRadius: viewMode !== 'desktop' ? '12px' : '0',
           }}
         >
           <iframe
             ref={iframeRef}
             title="Website Preview"
             sandbox="allow-scripts allow-forms allow-modals"
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              backgroundColor: 'white',
-              display: 'block',
-            }}
+            className="w-full h-full border-none bg-white block"
           />
         </div>
 
         {!code && (
-          <div className="preview-empty">
-            <div className="empty-state">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-              <h3>No Preview Available</h3>
-              <p>Generate a website to see the preview here</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-google-surface">
+            <div className="text-center p-8 max-w-sm">
+              <div className="w-16 h-16 bg-google-surface-hover rounded-full flex items-center justify-center mx-auto mb-4">
+                <Monitor className="w-8 h-8 text-google-text-secondary" />
+              </div>
+              <h3 className="text-lg font-medium text-google-text mb-2">No Preview Available</h3>
+              <p className="text-sm text-google-text-secondary">Generate a website to see the preview here</p>
             </div>
           </div>
         )}
