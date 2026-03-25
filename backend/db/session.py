@@ -7,20 +7,11 @@ from contextlib import contextmanager
 
 
 
-engine = create_engine("postgresql://postgres:ragul%402004@localhost:5432/webagent",
-    poolclass=QueuePool,
-    pool_size=5,  # Reduced pool size to be more conservative
-    max_overflow=5,  # Reduced overflow to be more conservative
-    pool_timeout=60,  # Increased timeout to 60 seconds
-    pool_recycle=300,  # Recycle connections every 5 minutes
-    pool_pre_ping=True,  # Enable connection health checks
-    connect_args={
-        "connect_timeout": 10,  # Connection timeout in seconds
-        "keepalives": 1,  # Enable keepalive
-        "keepalives_idle": 30,  # Idle time before sending keepalive
-        "keepalives_interval": 10,  # Time between keepalives
-        "keepalives_count": 5  # Number of keepalives before giving up
-    }
+from backend.core.config import settings
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    connect_args={"check_same_thread": False}
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

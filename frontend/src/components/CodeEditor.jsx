@@ -1,32 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import * as monaco from 'monaco-editor';
+import { Download, Copy, FileCode, Minus, Plus, Maximize, RotateCcw } from 'lucide-react';
 
 // Configure Monaco Editor web workers
-self.MonacoEnvironment = {
-  getWorkerUrl: function (moduleId, label) {
-    if (label === 'html' || label === 'handlebars' || label === 'razor') {
-      return './html.worker.js';
-    }
-    if (label === 'css' || label === 'scss' || label === 'less') {
-      return './css.worker.js';
-    }
-    if (label === 'javascript' || label === 'typescript') {
-      return './ts.worker.js';
-    }
-    return './editor.worker.js';
-  }
-};
+// self.MonacoEnvironment is handled by vite-plugin-monaco-editor
 
 const CodeEditor = ({ value, onChange }) => {
   const editorRef = useRef(null);
   const containerRef = useRef(null);
-  const [theme, setTheme] = useState('vs-dark');
+  const [theme, setTheme] = useState('GoogleDark');
   const [fontSize, setFontSize] = useState(14);
 
   useEffect(() => {
     if (containerRef.current) {
-      // Define custom themes
-      monaco.editor.defineTheme('v0-dark', {
+      // Define custom theme to match Google AI Studio
+      monaco.editor.defineTheme('GoogleDark', {
         base: 'vs-dark',
         inherit: true,
         rules: [
@@ -35,22 +23,22 @@ const CodeEditor = ({ value, onChange }) => {
           { token: 'string', foreground: '9ECBFF' },
           { token: 'number', foreground: '79B8FF' },
           { token: 'tag', foreground: '85E89D' },
-          { token: 'attribute.name', foreground: 'FFAB70' },
+          { token: 'attribute.name', foreground: 'B392F0' },
         ],
         colors: {
-          'editor.background': '#0D1117',
-          'editor.foreground': '#F0F6FC',
-          'editorLineNumber.foreground': '#6E7681',
+          'editor.background': '#131314', // google-dark
+          'editor.foreground': '#e3e3e3', // google-text
+          'editorLineNumber.foreground': '#444746', // google-border
           'editor.selectionBackground': '#264F78',
           'editor.inactiveSelectionBackground': '#3A3D41',
-          'editorCursor.foreground': '#F0F6FC',
+          'editorCursor.foreground': '#a8c7fa', // google-primary
         }
       });
 
       editorRef.current = monaco.editor.create(containerRef.current, {
         value,
         language: 'html',
-        theme: 'v0-dark',
+        theme: 'GoogleDark',
         automaticLayout: true,
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
@@ -63,24 +51,12 @@ const CodeEditor = ({ value, onChange }) => {
         formatOnType: true,
         folding: true,
         bracketMatching: 'always',
-        occurrencesHighlight: false,
-        selectionHighlight: false,
-        roundedSelection: false,
         padding: { top: 16 },
-        smoothScrolling: true,
-        cursorSmoothCaretAnimation: true,
-        fontLigatures: true,
-        fontFamily: 'JetBrains Mono, Fira Code, Monaco, monospace',
+        fontFamily: 'JetBrains Mono, Roboto Mono, monospace',
       });
 
       editorRef.current.onDidChangeModelContent(() => {
         onChange(editorRef.current.getValue());
-      });
-
-      // Add keyboard shortcuts
-      editorRef.current.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-        // Format document
-        editorRef.current.getAction('editor.action.formatDocument').run();
       });
     }
 
@@ -89,32 +65,22 @@ const CodeEditor = ({ value, onChange }) => {
         editorRef.current.dispose();
       }
     };
+  }, []);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.updateOptions({ fontSize: fontSize });
+    }
   }, [fontSize]);
+
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.getValue()) {
       const currentValue = editorRef.current.getValue();
-      const currentPosition = editorRef.current.getPosition();
-      
       editorRef.current.setValue(value);
-      
-      // Auto-scroll to the end if new content is being added (streaming)
+
+      // Auto-scroll logic if needed
       if (value.length > currentValue.length) {
-        // Move cursor to the end of the document
-        const lineCount = editorRef.current.getModel().getLineCount();
-        const lastLineLength = editorRef.current.getModel().getLineLength(lineCount);
-        
-        const endPosition = {
-          lineNumber: lineCount,
-          column: lastLineLength + 1
-        };
-        
-        editorRef.current.setPosition(endPosition);
-        
-        // Reveal the position to ensure it's visible
-        editorRef.current.revealPosition(endPosition, monaco.editor.ScrollType.Smooth);
-        
-        // Alternative: scroll to the bottom of the editor
-        editorRef.current.revealLine(lineCount, monaco.editor.ScrollType.Smooth);
+        editorRef.current.revealLine(editorRef.current.getModel().getLineCount());
       }
     }
   }, [value]);
@@ -136,7 +102,7 @@ const CodeEditor = ({ value, onChange }) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'generated-website.html';
+    a.download = 'index.html';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -144,66 +110,68 @@ const CodeEditor = ({ value, onChange }) => {
   };
 
   return (
-    <div className="code-editor-container">
+    <div className="flex flex-col h-full bg-google-dark relative">
       {/* Editor Toolbar */}
-      <div className="editor-toolbar">
-        <div className="editor-info">
-          <span className="file-name">generated-website.html</span>
-          <span className="line-count">{value.split('\n').length} lines</span>
+      <div className="flex items-center justify-between px-4 py-2 bg-google-surface border-b border-google-border shrink-0">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-google-text font-medium flex items-center gap-2">
+            <FileCode className="w-4 h-4 text-google-primary" />
+            index.html
+          </span>
+          <span className="text-google-text-secondary text-xs">
+            {value.split('\n').length} lines
+          </span>
         </div>
-        <div className="editor-actions">
+
+        <div className="flex items-center gap-1">
+          <div className="flex items-center bg-google-dark rounded-md border border-google-border mr-2">
+            <button
+              className="p-1.5 text-google-text-secondary hover:text-google-text hover:bg-google-surface-hover transition-colors rounded-l-md"
+              onClick={() => setFontSize(f => Math.max(10, f - 1))}
+              title="Decrease font size"
+            >
+              <Minus className="w-3 h-3" />
+            </button>
+            <span className="px-2 text-xs text-google-text font-mono w-8 text-center">{fontSize}</span>
+            <button
+              className="p-1.5 text-google-text-secondary hover:text-google-text hover:bg-google-surface-hover transition-colors rounded-r-md"
+              onClick={() => setFontSize(f => Math.min(24, f + 1))}
+              title="Increase font size"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+          </div>
+
           <button
-            className="editor-action-btn"
-            onClick={() => setFontSize(f => Math.max(10, f - 1))}
-            title="Decrease font size"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4"/>
-            </svg>
-          </button>
-          <span className="font-size-indicator">{fontSize}px</span>
-          <button
-            className="editor-action-btn"
-            onClick={() => setFontSize(f => Math.min(24, f + 1))}
-            title="Increase font size"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
-            </svg>
-          </button>
-          <div className="toolbar-divider"></div>
-          <button
-            className="editor-action-btn"
+            className="p-2 text-google-text-secondary hover:text-google-text hover:bg-google-surface-hover transition-colors rounded-md"
             onClick={formatCode}
-            title="Format code (Ctrl+S)"
+            title="Format code"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
+            <Maximize className="w-4 h-4" /> {/* Using Maximize as placeholder for format icon if not available, or standard icon */}
           </button>
+
           <button
-            className="editor-action-btn"
+            className="p-2 text-google-text-secondary hover:text-google-text hover:bg-google-surface-hover transition-colors rounded-md"
             onClick={copyCode}
             title="Copy to clipboard"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-            </svg>
+            <Copy className="w-4 h-4" />
           </button>
+
           <button
-            className="editor-action-btn"
+            className="p-2 text-google-text-secondary hover:text-google-text hover:bg-google-surface-hover transition-colors rounded-md"
             onClick={downloadCode}
-            title="Download HTML file"
+            title="Download HTML"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
+            <Download className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Monaco Editor */}
-      <div ref={containerRef} className="monaco-editor" />
+      {/* Monaco Editor Container */}
+      <div className="flex-1 relative overflow-hidden">
+        <div ref={containerRef} className="absolute inset-0 w-full h-full" />
+      </div>
     </div>
   );
 };

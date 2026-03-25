@@ -11,7 +11,7 @@ const AuthContainer = ({ onAuthSuccess }) => {
   const handleLogin = async (credentials) => {
     setError(null);
     const result = await login(credentials);
-    
+
     if (result.success) {
       onAuthSuccess?.();
     } else {
@@ -22,7 +22,7 @@ const AuthContainer = ({ onAuthSuccess }) => {
   const handleRegister = async (userData) => {
     setError(null);
     const result = await register(userData);
-    
+
     if (result.success) {
       onAuthSuccess?.();
     } else {
@@ -41,8 +41,8 @@ const AuthContainer = ({ onAuthSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-google-dark flex items-center justify-center p-4">
+      <div className="w-full max-w-[400px]"> {/* Google login card width is usually around 400-450px */}
         {authMode === 'login' ? (
           <LoginForm
             onLogin={handleLogin}
